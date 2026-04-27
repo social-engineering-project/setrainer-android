@@ -16,12 +16,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.setrainer.viewmodel.QuizViewModel
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CircularProgressIndicator
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
 fun QuizScreen(
     viewModel: QuizViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     when {
         viewModel.isLoading -> {
             Box(
@@ -48,7 +51,11 @@ fun QuizScreen(
             ResultsScreen(
                 score = viewModel.score,
                 totalQuestions = viewModel.questions.size,
-                onRestart = { viewModel.restartQuiz() }
+                onRestart = { viewModel.restartQuiz() },
+                onExit = {
+                    // Приводим контекст к Activity и закрываем его
+                    (context as? Activity)?.finish()
+                }
             )
         }
         else -> {
@@ -63,7 +70,8 @@ fun QuizContent(viewModel: QuizViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .safeDrawingPadding()
+            .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -73,7 +81,12 @@ fun QuizContent(viewModel: QuizViewModel) {
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = 16.dp)
+        )
+        Text(
+            text = "#КиберПраво: твой щит в сети",
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 6.dp)
         )
 
         // Прогресс
@@ -229,14 +242,16 @@ fun QuizContent(viewModel: QuizViewModel) {
 fun ResultsScreen(
     score: Int,
     totalQuestions: Int,
-    onRestart: () -> Unit
+    onRestart: () -> Unit,
+    onExit: () -> Unit
 ) {
     val percentage = (score.toFloat() / totalQuestions) * 100
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .safeDrawingPadding()
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -297,7 +312,7 @@ fun ResultsScreen(
             }
 
             OutlinedButton(
-                onClick = { /* Выход из приложения */ },
+                onClick = onExit,
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 8.dp)
